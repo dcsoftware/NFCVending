@@ -131,7 +131,7 @@ public class ComService extends Service {
 
                                 if(Arrays.equals(RESULT_AUTH_ERROR, statusWord)) {
                                     messenger.send(Message.obtain(null, cardState.ordinal(), "Authentication error!!"));
-                                    Thread.sleep(1000);
+                                    Thread.sleep(5000);
                                 } else if (Arrays.equals(RESULT_OK, statusWord)) {
                                     cardState = Constants.State.AUTHENTICATED;
                                     messenger.send(Message.obtain(null, cardState.ordinal(), "Authenticated!!"));
@@ -171,14 +171,14 @@ public class ComService extends Service {
                                     //int rechargeValue = Integer.valueOf(ByteArrayToHexString(payload));
                                     //newCredit += rechargeValue;
                                     recharged = true;
-                                    cardState = Constants.State.DATA_UPDATED;
+                                    //cardState = Constants.State.DATA_UPDATED;
                                 } else if (Arrays.equals(RESULT_STATUS_PURCHASE, statusWord)) {
                                     messenger.send(Message.obtain(null, cardState.ordinal(), "PURCHASE!"));
                                     rLength = result.length;
                                     //payload = Arrays.copyOf(result, rLength - 2);
                                     //int purchaseValue = Integer.valueOf(ByteArrayToHexString(payload));
                                     //newCredit -= purchaseValue;
-                                    cardState = Constants.State.DATA_UPDATED;
+                                    //cardState = Constants.State.DATA_UPDATED;
                                 }
 
                                 break;
