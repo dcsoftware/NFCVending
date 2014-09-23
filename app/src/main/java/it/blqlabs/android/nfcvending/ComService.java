@@ -120,6 +120,19 @@ public class ComService extends Service {
                                     e.printStackTrace();
                                 }
 
+                                if (pw.length() == 5) {
+                                    String s = "0" + pw;
+                                    pw = s;
+                                }
+                                if (pw.length() == 4) {
+                                    String s = "00" + pw;
+                                    pw = s;
+                                }
+                                if (pw.length() == 3) {
+                                    String s = "000" + pw;
+                                    pw = s;
+                                }
+
                                 byte[] pwByte = pw.getBytes();
 
                                 messenger.send(Message.obtain(null, cardState.ordinal(), "OTP Authorization, code: " + pw));
