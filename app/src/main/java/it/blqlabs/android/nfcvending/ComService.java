@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.util.Log;
 import android.widget.Toast;
 
 //import org.jboss.aerogear.security.otp.Totp;
@@ -101,7 +102,7 @@ public class ComService extends Service {
                                 command = BuildApduCommand(APDU_SELECT, APDU_P1_SELECT_BY_NAME, APDU_P2_SELECT_BY_NAME, APP_AID, APDU_LE);
                                 result = isoDep.transceive(command);
 
-                                statusWord = new byte[]{result[result.length - 2], result[result.length - 1]};
+                                statusWord = new byte[]{result[0], result[1]};
 
                                 if (Arrays.equals(RESULT_OK, statusWord)) {
                                     cardState = Constants.State.APP_SELECTED;
@@ -140,7 +141,7 @@ public class ComService extends Service {
 
                                 command = BuildApduCommand(APDU_AUTHENTICATE, APDU_P1_GENERAL, APDU_P2_GENERAL, ByteArrayToHexString(pwByte), APDU_LE);
                                 result = isoDep.transceive(command);
-                                statusWord = new byte[]{result[result.length - 2], result[result.length - 1]};
+                                statusWord = new byte[]{result[0], result[1]};
 
                                 if(Arrays.equals(RESULT_AUTH_ERROR, statusWord)) {
                                     messenger.send(Message.obtain(null, cardState.ordinal(), "Authentication error!!"));
@@ -157,7 +158,7 @@ public class ComService extends Service {
 
                                 command = BuildApduCommand(APDU_LOG_IN, APDU_P1_GENERAL, APDU_P2_GENERAL, ByteArrayToHexString(data), APDU_LE);
                                 result = isoDep.transceive(command);
-                                statusWord = new byte[]{result[result.length - 2], result[result.length - 1]};
+                                statusWord = new byte[]{result[0], result[1]};
 
                                 if (Arrays.equals(RESULT_OK, statusWord)) {
                                     cardState = Constants.State.READING_STATUS;
@@ -170,28 +171,30 @@ public class ComService extends Service {
                                 data = new byte[]{(byte) 0x11, (byte) 0x22};
 
                                 command = BuildApduCommand(APDU_READ_STATUS, APDU_P1_GENERAL, APDU_P2_GENERAL, ByteArrayToHexString(data), APDU_LE);
-                                Thread.sleep(2000);
+                                Thread.sleep(3000);
                                 result = isoDep.transceive(command);
-                                statusWord = new byte[]{result[result.length - 2], result[result.length - 1]};
-
+                                statusWord = new byte[]{result[0], result[1]};
+                                Log.d("TAG", "Result lenght = " + result.length);
+                                Log.d("TAG", "Status word = " + new String(result));
                                 if (Arrays.equals(RESULT_STATUS_WAITING, statusWord)) {
                                     cardState = Constants.State.READING_STATUS;
                                     messenger.send(Message.obtain(null, cardState.ordinal(), "Status: WAITING!"));
                                 } else if (Arrays.equals(RESULT_STATUS_RECHARGED, statusWord)) {
-                                    messenger.send(Message.obtain(null, cardState.ordinal(), "RECHARGED!!"));
-                                    rLength = result.length;
+                                    payload = Arrays.copyOfRange(result, 2, result.length);
+                                    float rechargeValue = Float.valueOf(new String(payload));
+                                    messenger.send(Message.obtain(null, cardState.ordinal(), "RECHARGED!!" + rechargeValue));
+                                    //rLength = result.length;
                                     //payload = Arrays.copyOf(result, rLength - 2);
-                                    //int rechargeValue = Integer.valueOf(ByteArrayToHexString(payload));
-                                    //newCredit += rechargeValue;
-                                    recharged = true;
-                                    cardState = Constants.State.DATA_UPDATED;
+                                    newCredit += rechargeValue;
+                                    //recharged = true;
+                                    //cardState = Constants.State.DATA_UPDATED;
                                 } else if (Arrays.equals(RESULT_STATUS_PURCHASE, statusWord)) {
-                                    messenger.send(Message.obtain(null, cardState.ordinal(), "PURCHASE!"));
-                                    rLength = result.length;
+                                    payload = Arrays.copyOfRange(result, 2, result.length);
+                                    float purchaseValue = Float.valueOf(new String(payload));
+                                    messenger.send(Message.obtain(null, cardState.ordinal(), "PURCHASE!" + purchaseValue));
                                     //payload = Arrays.copyOf(result, rLength - 2);
-                                    //int purchaseValue = Integer.valueOf(ByteArrayToHexString(payload));
-                                    //newCredit -= purchaseValue;
-                                    cardState = Constants.State.DATA_UPDATED;
+                                    newCredit -= purchaseValue;
+                                    //cardState = Constants.State.DATA_UPDATED;
                                 }
 
                                 break;
@@ -205,7 +208,7 @@ public class ComService extends Service {
                                 command = BuildApduCommand(APDU_UPDATE_CREDIT, APDU_P1_GENERAL, APDU_P1_GENERAL, ByteArrayToHexString(data), APDU_LE);
                                 result = isoDep.transceive(command);
 
-                                statusWord = new byte[]{result[result.length - 2], result[result.length - 1]};
+                                statusWord = new byte[]{result[0], result[1]};
 
                                 if (Arrays.equals(RESULT_DATA_UPDATED, statusWord)) {
                                     cardState = Constants.State.READING_STATUS;
