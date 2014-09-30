@@ -82,10 +82,7 @@ public class ComService extends Service {
             settingEditor = cardSetting.edit();
             userName = cardSetting.getString(Constants.USER_NAME, "");
             userSurname = cardSetting.getString(Constants.USER_SURNAME, "");
-            userCredit = cardSetting.getString(Constants.USER_CREDIT, "");
-            userId = cardSetting.getString(Constants.USER_ID, "");
 
-            newCredit = Float.valueOf(userCredit);
 
             isoDep = IsoDep.get(MainActivity.getTag());
             cardState = Constants.State.DISCONNECTED;
@@ -153,7 +150,11 @@ public class ComService extends Service {
 
                                 break;
                             case AUTHENTICATED:
-                                messenger.send(Message.obtain(null, cardState.ordinal(), "Logging in..."));
+                                userCredit = cardSetting.getString(Constants.USER_CREDIT, "");
+                                userId = cardSetting.getString(Constants.USER_ID, "");
+                                newCredit = Float.valueOf(userCredit);
+                                messenger.send(Message.obtain(null, cardState.ordinal(), "Logging in... " + newCredit));
+
                                 data = (userId + "," + userCredit + ";").getBytes();
 
                                 command = BuildApduCommand(APDU_LOG_IN, APDU_P1_GENERAL, APDU_P2_GENERAL, ByteArrayToHexString(data), APDU_LE);
@@ -182,28 +183,31 @@ public class ComService extends Service {
                                 } else if (Arrays.equals(RESULT_STATUS_RECHARGED, statusWord)) {
                                     payload = Arrays.copyOfRange(result, 2, result.length);
                                     float rechargeValue = Float.valueOf(new String(payload));
-                                    messenger.send(Message.obtain(null, cardState.ordinal(), "RECHARGED!!" + rechargeValue));
+                                    messenger.send(Message.obtain(null, cardState.ordinal(), "RECHARGED!! " + rechargeValue));
                                     //rLength = result.length;
                                     //payload = Arrays.copyOf(result, rLength - 2);
                                     newCredit += rechargeValue;
                                     //recharged = true;
-                                    //cardState = Constants.State.DATA_UPDATED;
+                                    cardState = Constants.State.DATA_UPDATED;
                                 } else if (Arrays.equals(RESULT_STATUS_PURCHASE, statusWord)) {
                                     payload = Arrays.copyOfRange(result, 2, result.length);
                                     float purchaseValue = Float.valueOf(new String(payload));
-                                    messenger.send(Message.obtain(null, cardState.ordinal(), "PURCHASE!" + purchaseValue));
+                                    messenger.send(Message.obtain(null, cardState.ordinal(), "PURCHASE! " + purchaseValue));
                                     //payload = Arrays.copyOf(result, rLength - 2);
                                     newCredit -= purchaseValue;
-                                    //cardState = Constants.State.DATA_UPDATED;
+                                    cardState = Constants.State.DATA_UPDATED;
                                 }
 
                                 break;
                             case DATA_UPDATED:
-                                messenger.send(Message.obtain(null, cardState.ordinal(), cardState));
+                                messenger.send(Message.obtain(null, cardState.ordinal(), "Credit update: " + newCredit));
+                                newCredit = (float)Math.round(newCredit * 100) / 100;
                                 settingEditor.putString(Constants.USER_CREDIT, String.valueOf(newCredit));
                                 settingEditor.commit();
 
-                                data = cardSetting.getString(Constants.USER_CREDIT, "").getBytes();
+
+                                cardState = Constants.State.AUTHENTICATED;
+                                /*data = cardSetting.getString(Constants.USER_CREDIT, "").getBytes();
 
                                 command = BuildApduCommand(APDU_UPDATE_CREDIT, APDU_P1_GENERAL, APDU_P1_GENERAL, ByteArrayToHexString(data), APDU_LE);
                                 result = isoDep.transceive(command);
@@ -212,7 +216,7 @@ public class ComService extends Service {
 
                                 if (Arrays.equals(RESULT_DATA_UPDATED, statusWord)) {
                                     cardState = Constants.State.READING_STATUS;
-                                }
+                                }*/
 
                                 break;
 
