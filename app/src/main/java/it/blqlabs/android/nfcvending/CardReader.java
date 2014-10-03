@@ -15,25 +15,6 @@ import java.util.Arrays;
  */
 public class CardReader {
 
-    /*public static enum State {
-        DISCONNECTED("disconnected", 0), CONNECTED("connected", 1), APP_SELECTED("app_selected", 2), AUTHENTICATED("authenticated", 3),
-        LOGGED_IN("logged_in", 4), READING_STATUS("reading_status", 5), DATA_UPDATED("data_updated", 6),
-        RELEASED("released", 7);
-
-        private String stringValue;
-        private int intValue;
-
-        private State(String s, int i) {
-            stringValue = s;
-            intValue = i;
-        }
-
-        @Override
-        public String toString() {
-            return stringValue;
-        }
-    }*/
-
     private static final String TAG = "CardReader";
     // AID for our loyalty card service.
     //private static final String SAMPLE_CARD_AID = "F01234";
