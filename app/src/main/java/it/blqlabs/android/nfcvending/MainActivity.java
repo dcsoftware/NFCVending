@@ -17,6 +17,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import it.blqlabs.android.nfcvending.GcmBackend.GcmRegistrationTask;
+
 
 public class MainActivity extends FragmentActivity implements CardReader.ActionCallback{
 
@@ -58,6 +60,8 @@ public class MainActivity extends FragmentActivity implements CardReader.ActionC
         transaction.commit();
 
         isFirstRun();
+
+        new GcmRegistrationTask().execute(this);
     }
 
     public static MainActivity getMainActivity() {

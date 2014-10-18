@@ -10,6 +10,7 @@ public class Constants {
     public static final String USER_SURNAME = "userSurname";
     public static final String USER_CREDIT = "userCredit";
     public static final String USER_ID = "userId";
+    public static final String GCM_SENDER_ID = "724341685796";
 
     public static final String M_SHARED_PREF = "mSharedPref";
     public static final String IS_FIRST_RUN = "isFirstRun";

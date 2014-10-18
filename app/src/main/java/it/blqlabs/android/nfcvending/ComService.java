@@ -22,7 +22,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-import it.blqlabs.android.nfcvending.OTPGenerator.OTPGenerator;
+import it.blqlabs.android.nfcvending.OtpGenerator.OtpGenerator;
 
 
 public class ComService extends Service {
@@ -42,6 +42,7 @@ public class ComService extends Service {
     private static final byte[] RESULT_STATUS_RECHARGED = {(byte) 0x33, (byte) 0x44};
     private static final byte[] RESULT_STATUS_PURCHASE = {(byte) 0x44, (byte) 0x55};
     private static final byte[] RESULT_DATA_UPDATED = {(byte) 0x55, (byte) 0x66};
+    private static final byte[] RESULT_PRIV_APP_SELECTED = {(byte) 0x66, (byte) 0x77};
     private static final byte[] RESULT_AUTH_ERROR = {(byte) 0xB1, (byte) 0xB2};
 
 
@@ -54,6 +55,7 @@ public class ComService extends Service {
     private String userSurname = "";
     private String userCredit = "";
     private String userId = "";
+    private String machineId = "";
     private boolean recharged = false;
     private Constants.State cardState;
     private SharedPreferences cardSetting;
@@ -68,7 +70,7 @@ public class ComService extends Service {
 
     private String secret = "ABCDEFGHIJ";
 
-    private OTPGenerator mOtpGenerator;
+    private OtpGenerator mOtpGenerator;
 
     private final class ServiceHandler extends Handler {
         public ServiceHandler(Looper looper) {
@@ -77,7 +79,7 @@ public class ComService extends Service {
         @Override
         public void handleMessage(Message msg) {
             Context context = MainActivity.getContext();
-            mOtpGenerator = new OTPGenerator(secret);
+            mOtpGenerator = new OtpGenerator(secret);
             cardSetting = context.getSharedPreferences(Constants.USER_SHARED_PREF, Context.MODE_PRIVATE);
             settingEditor = cardSetting.edit();
             userName = cardSetting.getString(Constants.USER_NAME, "");
@@ -101,9 +103,11 @@ public class ComService extends Service {
 
                                 statusWord = new byte[]{result[0], result[1]};
 
-                                if (Arrays.equals(RESULT_OK, statusWord)) {
+                                if (Arrays.equals(RESULT_PRIV_APP_SELECTED, statusWord)) {
+                                    payload = Arrays.copyOfRange(result, 2, result.length);
+                                    machineId = new String(payload);
                                     cardState = Constants.State.APP_SELECTED;
-                                    messenger.send(Message.obtain(null, cardState.ordinal(), "App selection OK!!"));
+                                    messenger.send(Message.obtain(null, cardState.ordinal(), "Machine ID: " + machineId));
                                 }
 
                                 break;
