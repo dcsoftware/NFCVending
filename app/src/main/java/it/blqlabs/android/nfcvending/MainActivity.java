@@ -61,7 +61,7 @@ public class MainActivity extends FragmentActivity implements CardReader.ActionC
 
         isFirstRun();
 
-        new GcmRegistrationTask().execute(this);
+        //new GcmRegistrationTask().execute(this);
     }
 
     public static MainActivity getMainActivity() {

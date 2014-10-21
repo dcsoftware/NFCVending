@@ -65,6 +65,7 @@ public class ComService extends Service {
     private byte[] data;
     private byte[] statusWord;
     private byte[] payload;
+    private long transactionId = 0;
     private int rLength;
     private float newCredit = 0;
 
@@ -102,7 +103,8 @@ public class ComService extends Service {
                                 result = isoDep.transceive(command);
 
                                 statusWord = new byte[]{result[0], result[1]};
-
+                                Log.d("TAG", "Result lenght = " + result.length);
+                                Log.d("TAG", "result = " + new String(result));
                                 if (Arrays.equals(RESULT_PRIV_APP_SELECTED, statusWord)) {
                                     payload = Arrays.copyOfRange(result, 2, result.length);
                                     machineId = new String(payload);
@@ -187,19 +189,19 @@ public class ComService extends Service {
                                     cardState = Constants.State.READING_STATUS;
                                     messenger.send(Message.obtain(null, cardState.ordinal(), "Status: WAITING!"));
                                 } else if (Arrays.equals(RESULT_STATUS_RECHARGED, statusWord)) {
-                                    payload = Arrays.copyOfRange(result, 2, result.length);
-                                    timestamp = Arrays.copyOfRange(result, 8, result.length);
+                                    //payload = Arrays.copyOfRange(result, 2, result.length);
+                                    timestamp = Arrays.copyOfRange(result, 8, 18);
                                     float rechargeValue = Float.valueOf(new String(Arrays.copyOfRange(result, 2, 7)));
-                                    messenger.send(Message.obtain(null, cardState.ordinal(), "RECHARGED!! " + " " + new String(timestamp)));
-                                    //rLength = result.length;
-                                    //payload = Arrays.copyOf(result, rLength - 2);
+                                    transactionId = Long.decode(new String(Arrays.copyOfRange(result,18, result.length)));
+                                    messenger.send(Message.obtain(null, cardState.ordinal(), "RECHARGED!! " + " " + new String(timestamp) + "id: " + transactionId));
                                     newCredit += rechargeValue;
                                     cardState = Constants.State.DATA_UPDATED;
                                 } else if (Arrays.equals(RESULT_STATUS_PURCHASE, statusWord)) {
-                                    payload = Arrays.copyOfRange(result, 2, result.length);
-                                    timestamp = Arrays.copyOfRange(result, 8, result.length);
+                                    //payload = Arrays.copyOfRange(result, 2, result.length);
+                                    timestamp = Arrays.copyOfRange(result, 8, 18);
                                     float purchaseValue = Float.valueOf(new String(Arrays.copyOfRange(result, 2, 7)));
-                                    messenger.send(Message.obtain(null, cardState.ordinal(), "PURCHASE! " + " " + new String(timestamp)));
+                                    transactionId = Long.decode(new String(Arrays.copyOfRange(result,18, result.length)));
+                                    messenger.send(Message.obtain(null, cardState.ordinal(), "PURCHASE! " + " " + new String(timestamp) + "id: " + transactionId));
                                     newCredit -= purchaseValue;
                                     cardState = Constants.State.DATA_UPDATED;
                                 }
